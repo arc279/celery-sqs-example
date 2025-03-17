@@ -1,0 +1,13 @@
+@base_url = http://127.0.0.1:9876
+
+###
+POST {{base_url}}/bmi
+Content-Type: application/json
+
+{"weight": 65, "height": 1.8}
+
+###
+GET {{base_url}}/hello
+
+###
+GET {{base_url}}/hello2

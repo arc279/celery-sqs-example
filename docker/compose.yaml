@@ -1,0 +1,115 @@
+services:
+  mysql:
+    platform: linux/amd64
+    image: mysql:8.0.23
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+    volumes:
+      - type: bind
+        source: ./.volumes/mysql/
+        target: /var/lib/mysql
+  redis:
+    image: redis:3.2
+    platform: linux/amd64
+    ports:
+      - "6379:6379"
+
+  moto:
+    ports:
+      - "4576:5000"
+    image: motoserver/moto:5.0.24
+
+  localstack:
+    image: localstack/localstack
+    ports:
+      - "127.0.0.1:4566:4566"
+      - "127.0.0.1:4571:4571"
+    environment:
+      - SERVICES=${SERVICES- }
+      - DEBUG=${DEBUG- }
+      - DATA_DIR=${DATA_DIR- }
+      - LAMBDA_EXECUTOR=${LAMBDA_EXECUTOR- }
+      - HOST_TMP_FOLDER=${TMPDIR:-/tmp/}localstack
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+  server:
+    platform: linux/amd64
+    image: celery-example/server
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile
+    ports:
+      - "9876:9876"
+    env_file:
+      - ./.env
+    command: uvicorn src.server.main:app --host 0.0.0.0 --port 9876 --reload
+    volumes:
+      - type: bind
+        source: ../
+        target: /app/
+    depends_on:
+      - mysql
+
+  worker:
+    platform: linux/amd64
+    image: celery-example/worker
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile
+    env_file:
+      - ./.env
+    environment:
+      - AWS_ACCESS_KEY_ID=DUMMY
+      - AWS_SECRET_ACCESS_KEY=DUMMY
+    command: celery --app=src.jobs.worker.tasks worker --loglevel=info
+    volumes:
+      - type: bind
+        source: ../
+        target: /app/
+    depends_on:
+      - mysql
+      - moto
+      - redis
+
+  beat:
+    platform: linux/amd64
+    image: celery-example/worker
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile
+    env_file:
+      - ./.env
+    environment:
+      - AWS_ACCESS_KEY_ID=DUMMY
+      - AWS_SECRET_ACCESS_KEY=DUMMY
+    command: celery --app=src.jobs.cron beat --loglevel=info --schedule=./tmp/celerybeat-schedule
+    volumes:
+      - type: bind
+        source: ../
+        target: /app/
+    depends_on:
+      - mysql
+      - moto
+      - redis
+
+  dashboard:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile
+    command: celery --app=src.worker.tasks.celery flower --port=5555
+    volumes:
+      - type: bind
+        source: ../
+        target: /app/
+    ports:
+      - 5556:5555
+    env_file:
+      - ./.env
+    depends_on:
+      - mysql
+      - localstack
+      - redis
