@@ -7,23 +7,25 @@
 
 ###-----------------------------------------------------------------------------
 worker:
-	celery --app=src.jobs.worker.tasks worker --loglevel=info
+	celery --app=src.jobs.worker worker --loglevel=info
+
+worker.dev:
+	python3 -m watchdog.watchmedo auto-restart -d ./src/jobs/ --pattern '*.py' --recursive -- \
+		${MAKE} worker
 
 beat:
-	celery --app=src.jobs.cron beat --loglevel=info --schedule=./tmp/celerybeat-schedule
+	celery --app=src.jobs.scheduler beat --loglevel=info --schedule=./tmp/celerybeat-schedule
+
+beat.dev:
+	python3 -m watchdog.watchmedo auto-restart -d ./src/jobs/ --pattern 'scheduler.py' --recursive -- \
+		${MAKE} beat
 
 server:
 	uvicorn src.server:app --host 0.0.0.0 --port 9876 --reload
 
 ###-----------------------------------------------------------------------------
-put:
-	BROKER_URL='redis://localhost:6379' python -m src.test.put
+call_delay:
+	python -m src.test.call_delay
 
-external:
-	python -m src.test.external
-
-###-----------------------------------------------------------------------------
-w:
-	python3 -m watchdog.watchmedo auto-restart -d ./src -p 'tasks.py' --recursive -- \
-		celery --app=src.worker.tasks.celery worker --loglevel=info
-
+call_by_name:
+	python -m src.test.call_by_name
