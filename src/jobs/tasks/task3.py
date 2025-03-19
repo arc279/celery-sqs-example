@@ -1,14 +1,14 @@
 import time
-from celery import shared_task
+from src.jobs.app import app, TASK_DEFAULT_QUEUE
 
 
-@shared_task
+@app.task(queue=TASK_DEFAULT_QUEUE)
 def print_args(*args, **kwargs):
     time.sleep(3)
     print(locals())
 
 
-@shared_task(name="calc_bmi")
+@app.task(name="calc_bmi", queue=TASK_DEFAULT_QUEUE)
 def calc_bmi(weight: float, height: float) -> float:
     time.sleep(3)
     bmi = weight / height**2
@@ -16,7 +16,7 @@ def calc_bmi(weight: float, height: float) -> float:
     return bmi
 
 
-@shared_task(name="sample_task_execute")
+@app.task(name="sample_task_execute", queue=TASK_DEFAULT_QUEUE)
 def sample_task_execute(something: str):
     print(f"called sample_task_execute {something}")
     return something

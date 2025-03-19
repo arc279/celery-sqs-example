@@ -10,6 +10,7 @@ services:
       - type: bind
         source: ./.volumes/mysql/
         target: /var/lib/mysql
+
   redis:
     image: redis:3.2
     platform: linux/amd64
@@ -65,7 +66,7 @@ services:
     environment:
       - AWS_ACCESS_KEY_ID=DUMMY
       - AWS_SECRET_ACCESS_KEY=DUMMY
-    command: celery --app=src.jobs.worker.tasks worker --loglevel=info
+    command: celery --app=src.jobs.worker worker --loglevel=info
     volumes:
       - type: bind
         source: ../
@@ -86,7 +87,7 @@ services:
     environment:
       - AWS_ACCESS_KEY_ID=DUMMY
       - AWS_SECRET_ACCESS_KEY=DUMMY
-    command: celery --app=src.jobs.cron beat --loglevel=info --schedule=./tmp/celerybeat-schedule
+    command: celery --app=src.jobs.scheduler beat --loglevel=info --schedule=./tmp/celerybeat-schedule
     volumes:
       - type: bind
         source: ../
@@ -100,7 +101,7 @@ services:
     build:
       context: ../
       dockerfile: docker/Dockerfile
-    command: celery --app=src.worker.tasks.celery flower --port=5555
+    command: celery --app=src.jobs.worker flower --port=5555
     volumes:
       - type: bind
         source: ../
