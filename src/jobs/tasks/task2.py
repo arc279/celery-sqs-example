@@ -1,8 +1,8 @@
 import time
-from celery import shared_task
+from src.jobs.app import app, TASK_DEFAULT_QUEUE
 
 
-@shared_task
+@app.task(queue=TASK_DEFAULT_QUEUE)
 def add(x, y):
     time.sleep(3)
     ret = x + y
@@ -10,7 +10,7 @@ def add(x, y):
     return ret
 
 
-@shared_task
+@app.task(queue=TASK_DEFAULT_QUEUE)
 def send_email(email: str):
     time.sleep(5)
     print(locals())

@@ -4,6 +4,10 @@
 # https://docs.celeryq.dev/en/stable/getting-started/first-steps-with-celery.html#first-steps
 # https://zenn.dev/shimakaze_soft/articles/bbd859803c63a6
 
+###-----------------------------------------------------------------------------
+infra:
+	docker compose --project-directory docker up mysql moto redis localstack
+
 
 ###-----------------------------------------------------------------------------
 worker:
@@ -21,11 +25,11 @@ beat.dev:
 		${MAKE} beat
 
 server:
-	uvicorn src.server:app --host 0.0.0.0 --port 9876 --reload
+	uvicorn src.server.main:app --host 0.0.0.0 --port 9876 --reload
 
 ###-----------------------------------------------------------------------------
-call_delay:
-	python -m src.test.call_delay
+call_by_delay:
+	python -m src.test.call_by_delay
 
 call_by_name:
 	python -m src.test.call_by_name

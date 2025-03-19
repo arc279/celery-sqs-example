@@ -1,11 +1,17 @@
 import time
 from sqlalchemy import text
 
-from src.jobs.app import app
 from src.jobs import db
+from src.jobs.app import app, TASK_DEFAULT_QUEUE
 
 
-@app.task
+@app.task(queue=TASK_DEFAULT_QUEUE)
+def hello():
+    time.sleep(3)
+    print("hello")
+
+
+@app.task(queue=TASK_DEFAULT_QUEUE)
 def test_db():
     print("called hello")
     with db.session.begin():
