@@ -3,7 +3,7 @@ import os
 from celery import Celery
 
 # 適切に IAM 権限が付与されていれば指定なしでも動作する
-BROKER_URL = os.getenv("CELERY_BROKER_URL" "sqs://")
+BROKER_URL = os.getenv("CELERY_BROKER_URL", "sqs://")
 TASK_DEFAULT_QUEUE = os.getenv("CELERY_TASK_DEFAULT_QUEUE", "celery-sqs-example")
 
 app = Celery(__name__, broker=BROKER_URL)
