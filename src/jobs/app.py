@@ -6,7 +6,7 @@ from celery import Celery
 BROKER_URL = os.getenv("CELERY_BROKER_URL" "sqs://")
 TASK_DEFAULT_QUEUE = os.getenv("CELERY_TASK_DEFAULT_QUEUE", "celery-sqs-example")
 
-app = Celery(__name__, broker=os.getenv("CELERY_BROKER_URL" "sqs://"))
+app = Celery(__name__, broker=BROKER_URL)
 print(f"queue name: {TASK_DEFAULT_QUEUE}")
 
 # cf. https://qiita.com/hankehly/items/c3e0496eb04327a53ac4
